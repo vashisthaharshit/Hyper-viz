@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decision Plot Visualizer</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #50e3c2;
+            --background-color: #f5f7fa;
+            --text-color: #333;
+            --card-background: #ffffff;
+        }
+
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            font-size: 3em;
+            margin-bottom: 40px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        form {
+            background: var(--card-background);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 40px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        select, input[type="number"], input[type="range"] {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        select:focus, input[type="number"]:focus, input[type="range"]:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+        }
+
+        input[type="submit"] {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        input[type="submit"]:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+        }
+
+        .hyperparam {
+            display: none;
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 40px 0;
+            background: var(--card-background);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        img {
+            display: block;
+            max-width: 100%;
+            margin: 40px auto;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        h2 {
+            text-align: center;
+            color: var(--primary-color);
+            font-size: 2.2em;
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            form {
+                padding: 30px;
+            }
+
+            h1 {
+                font-size: 2.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Decision Plot Visualizer</h1>
+        <form method="post">
+        {% csrf_token %}
+        <label for="model">Select Model:</label>
+        <select id="model" name="model" required onchange="updateHyperparams()">
+            <option value="random_forest">Random Forest</option>
+            <option value="svm">SVM</option>
+            <option value="xgboost">XGBoost</option>
+        </select>
+
+        <div id="random_forest" class="hyperparam">
+            <label for="n_estimators">Number of Estimators:
+                <span id="n_estimators_value">10</span>
+            </label>
+            <input type="range" id="n_estimators" name="n_estimators" min="1" max="100" value="10" oninput="updateValue('n_estimators')">
+
+            <label for="max_depth">Max Depth:
+                <span id="max_depth_value">0</span>
+            </label>
+            <input type="range" id="max_depth" name="max_depth" min="0" max="100" value="0" oninput="updateValue('max_depth')">
+
+            <label for="min_samples_split">Min Samples Split:
+                <span id="min_samples_split_value">2</span>
+            </label>
+            <input type="range" id="min_samples_split" name="min_samples_split" min="2" value="2" oninput="updateValue('min_samples_split')">
+        </div>
+
+        <div id="svm" class="hyperparam">
+            <label for="C">C (Inverse Regularization Strength):
+                <span id="C_value">1.0</span>
+            </label>
+            <input type="number" id="C" name="C" step="0.01" min="0.01" value="1.0" oninput="updateValue('C')">
+        
+            <label for="degree">Degree:
+                <span id="degree_value">1</span>
+            </label>
+            <input type="range" id="degree" name="degree" min="1" max="5" value="1" oninput="updateValue('degree')">
+            
+            <label for="kernel">Penalty:</label>
+            <select name="kernel" required>
+                <option value="linear">linear</option>
+                <option value="poly">poly</option>
+                <option value="rbf">rbf</option>
+                <option value="sigmoid">sigmoid</option>
+            </select>
+        </div>
+
+        <div id="xgboost" class="hyperparam">
+            <label for="n_estimators_xgb">Number of Estimators:
+                <span id="n_estimators_xgb_value">100</span>
+            </label>
+            <input type="range" id="n_estimators_xgb" name="n_estimators_xgb" min="1" max="1000" value="100" oninput="updateValue('n_estimators_xgb')">
+
+            <label for="learning_rate">Learning Rate:</label>
+            <input type="number" name="learning_rate" step="0.01" min="0.01" value="0.1">
+            
+            <label for="max_depth_xgb">Max Depth:
+                <span id="max_depth_xgb_value">None</span>
+            </label>
+            <input type="range" id="max_depth_xgb" name="max_depth_xgb" min="0" value="0" oninput="updateValue('max_depth_xgb')">
+        </div>
+
+        <input type="submit" value="Generate Plot">
+        </form>
+
+        <table>
+        <tr>
+            <th>R2 Score</th>
+            <th>Mean Absolute Error</th>
+            <th>Mean Squared Error</th>
+        </tr>
+        <tr>
+            <td>{{r2}}</td>
+            <td>{{mae}}</td>
+            <td>{{mse}}</td>
+        </tr>
+        </table>
+
+        {% if plot_image %}
+            <h2>Decision Boundary Plot:</h2>
+            <img src="data:image/png;base64,{{ plot_image }}" alt="Decision Boundary">
+        {% endif %}
+    </div>
+
+    <script>
+        function updateHyperparams() {
+            const model = document.getElementById('model').value;
+            const hyperparams = document.querySelectorAll('.hyperparam');
+            
+            hyperparams.forEach(param => {
+                param.style.display = 'none'; 
+            });
+            
+            document.getElementById(model).style.display = 'block';
+        }
+
+        function updateValue(id) {
+            const slider = document.getElementById(id);
+            const valueDisplay = document.getElementById(id + '_value');
+            valueDisplay.textContent = id.includes('None') ? 'None' : slider.value;
+        }
+
+        window.onload = function() {
+            updateHyperparams();
+            updateValue('n_estimators');
+            updateValue('min_samples_split');
+            updateValue('n_estimators_xgb');
+        };
+    </script>
+</body>
+</html>
